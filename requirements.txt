@@ -1,0 +1,14 @@
+python==3.8.0
+numpy==1.19.5
+pandas==1.2.4
+scikit-learn==0.24.2
+matplotlib==3.4.2
+scipy==1.6.3 
+sox==1.4.0
+ffmpeg==4.3.1
+ffmpeg-python==0.2.0
+scaper==1.6.5
+tensorflow==2.5.0
+cudatoolkit==11.0.221
+tensorflow-addons==0.13.0
+pillow==7.1.2
