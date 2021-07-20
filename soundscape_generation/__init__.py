@@ -1,5 +1,5 @@
 """
-soundscape-generation.
+soundscape_generation.
 Generate soundscapes based on images.
 """
 

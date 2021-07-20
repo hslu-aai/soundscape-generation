@@ -5,15 +5,16 @@ import numpy as np
 import os
 import tensorflow as tf
 import time
-from ERFNet import ERFNet
 from PIL import Image
-from cityscapes import CityscapesDataset
 from operator import itemgetter
-from utils import read_image
+from soundscape_generation.models.ERFNet import ERFNet
+from soundscape_generation.dataset.cityscapes import CityscapesDataset
+from soundscape_generation.utils.utils import read_image
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 foreground_sounds_dict, background_sounds_dict = {}, {}
+DEFAULT_MODEL = "experiments/Cityscapes/ERFNet-Pretrained/pretrained.h5"
 
 
 def main(args):
@@ -35,8 +36,10 @@ def main(args):
     print('Shape of network\'s output:', out_test.shape)
 
     # Load weights and images from given paths
+    if eval(args.weights) is None:
+        args.weights = DEFAULT_MODEL
     weights_path = os.path.join(os.getcwd(), args.weights)
-    image_paths = sorted(glob.glob(os.path.join(os.getcwd(), 'test_images', '*.png')))  # Specify Image file type
+    image_paths = sorted(glob.glob(os.path.join(os.getcwd(), args.test_images, '*.{}'.format(args.test_images_type))))  # Specify Image file type
 
     network.load_weights(weights_path)
     print('Weights from {} loaded correctly.'.format(weights_path))
@@ -57,16 +60,14 @@ def main(args):
         t1 = time.time()
 
         # Save segmentation
-        save_path = image_path.replace('test_images', 'test_segmentations')
+        save_path = image_path.replace('.{}'.format(args.test_images_type), '_pred.{}'.format(args.test_images_type))
         segmentation = Image.fromarray(y_pred_colors.numpy())
         segmentation.save(save_path)
 
-        print()
         print('Segmentation of image\n {}\nsaved in\n {}.'.format(image_path, save_path))
         inference_times.append(t1 - t0)
 
         # Print detected_objects
-        print()
         _, tail = os.path.split(image_path)
         foreground_sounds, background_sounds = get_sounds(image_path, save_path, y_pred_labels, dataset)
         foreground_sounds_dict[tail] = foreground_sounds
@@ -77,7 +78,7 @@ def main(args):
 
 
 def get_sounds(image_path, save_path, y_pred_labels, dataset):
-    print('Prediction of image\n{}'.format(image_path, save_path))
+    print('Prediction of image\n{}\n{}'.format(image_path, save_path))
     unique, counts = np.unique(y_pred_labels.numpy(), return_counts=True)
     detected_objects_dict = dict(zip(unique, counts))
     topitems = heapq.nlargest(1, detected_objects_dict.items(), key=itemgetter(1))
@@ -101,13 +102,13 @@ def get_sounds(image_path, save_path, y_pred_labels, dataset):
 
 
 if __name__ == '__main__':
-    os.chdir("extended_prototype")
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--img_height', type=int, default=512, help='Image height after resizing')
     parser.add_argument('--img_width', type=int, default=1024, help='Image width after resizing')
-    parser.add_argument('--weights', type=str, default="pretrained/pretrained.h5",
-                        help='Relative path of network weights')
+    parser.add_argument('--weights', type=str, default="None", help='Relative path of network weights')
+    parser.add_argument('--test_images', type=str, default="data/test_images/", help='Relative path of the test images')
+    parser.add_argument('--test_images_type', type=str, default="jpg", help='Test image types')
 
     args = parser.parse_args()
     main(args)

@@ -1,4 +1,3 @@
-
 # Created by https://www.toptal.com/developers/gitignore/api/vim,python,pycharm+all,jupyternotebooks
 # Edit at https://www.toptal.com/developers/gitignore?templates=vim,python,pycharm+all,jupyternotebooks
 
@@ -277,3 +276,5 @@ extended_prototype/saved_weights/*
 extended_prototype/soundbank/*
 extended_prototype/soundscapes/*
 extended_prototype/test_segmentations/*
+saved_weights/*
+experiments/*
