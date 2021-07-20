@@ -268,6 +268,7 @@ tags
 
 # End of https://www.toptal.com/developers/gitignore/api/vim,python,pycharm+all,jupyternotebooks
 .DS_STORE
+data/*
 extended_prototype/assets/*
 extended_prototype/checkpoints/*
 extended_prototype/own_dataset/*
