@@ -14,7 +14,7 @@ class DownsamplerBlock(tf.keras.layers.Layer):
         out = tf.keras.layers.Concatenate(axis=-1)([out1, out2])
         out = self.bn(out, training=is_training)
         return out
-        
+
 
 class NonBottleNeck1D(tf.keras.layers.Layer):
     def __init__(self, ch_out, dropout_rate, dilation_rate):
@@ -23,8 +23,10 @@ class NonBottleNeck1D(tf.keras.layers.Layer):
         self.conv1 = tf.keras.layers.Conv2D(ch_out, kernel_size=(3, 1), strides=1, padding='same')
         self.conv2 = tf.keras.layers.Conv2D(ch_out, kernel_size=(1, 3), strides=1, padding='same')
         self.bn1 = tf.keras.layers.BatchNormalization()
-        self.conv3 = tf.keras.layers.Conv2D(ch_out, kernel_size=(3, 1), strides=1, padding='same', dilation_rate=(dilation_rate, 1))
-        self.conv4 = tf.keras.layers.Conv2D(ch_out, kernel_size=(1, 3), strides=1, padding='same', dilation_rate=(1, dilation_rate))
+        self.conv3 = tf.keras.layers.Conv2D(ch_out, kernel_size=(3, 1), strides=1, padding='same',
+                                            dilation_rate=(dilation_rate, 1))
+        self.conv4 = tf.keras.layers.Conv2D(ch_out, kernel_size=(1, 3), strides=1, padding='same',
+                                            dilation_rate=(1, dilation_rate))
         self.bn2 = tf.keras.layers.BatchNormalization()
         if self.dropout_rate != 0:
             self.drop = tf.keras.layers.Dropout(dropout_rate)
@@ -35,7 +37,7 @@ class NonBottleNeck1D(tf.keras.layers.Layer):
         out = self.conv2(out)
         out = self.bn1(out, training=is_training)
         out = tf.nn.relu(out)
-        
+
         out = self.conv3(out)
         out = tf.nn.relu(out)
         out = self.conv4(out)
@@ -43,7 +45,7 @@ class NonBottleNeck1D(tf.keras.layers.Layer):
 
         if self.dropout_rate != 0:
             out = self.drop(out, training=is_training)
-        
+
         out = tf.keras.layers.Add()([out, inp])
         out = tf.nn.relu(out)
 
@@ -72,7 +74,7 @@ class Encoder(tf.keras.Model):
         self.blocks.append(DownsamplerBlock(ch_in=16, ch_out=64))
 
         for _ in range(5):
-           self.blocks.append(NonBottleNeck1D(ch_out=64, dropout_rate=0.03, dilation_rate=1)) 
+            self.blocks.append(NonBottleNeck1D(ch_out=64, dropout_rate=0.03, dilation_rate=1))
 
         self.blocks.append(DownsamplerBlock(ch_in=64, ch_out=128))
 
@@ -81,7 +83,7 @@ class Encoder(tf.keras.Model):
             self.blocks.append(NonBottleNeck1D(ch_out=128, dropout_rate=0.3, dilation_rate=4))
             self.blocks.append(NonBottleNeck1D(ch_out=128, dropout_rate=0.3, dilation_rate=8))
             self.blocks.append(NonBottleNeck1D(ch_out=128, dropout_rate=0.3, dilation_rate=16))
-    
+
     def call(self, inp, is_training=True):
         out = self.initial_block(inp, training=is_training)
         for block in self.blocks:

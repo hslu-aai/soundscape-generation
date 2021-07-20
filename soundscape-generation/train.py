@@ -1,19 +1,17 @@
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
-import math
-import time
-import random
 import argparse
+import math
 import numpy as np
+import os
+import random
 import tensorflow as tf
 import tensorflow_addons as tfa
-
-from datasets import CityscapesDataset
-from models import ERFNet
-
-from losses import weighted_cross_entropy_loss
+import time
+from ERFNet import ERFNet
+from cityscapes import CityscapesDataset
 from evaluation import evaluate
+from losses import weighted_cross_entropy_loss
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def main(args):
@@ -40,7 +38,9 @@ def main(args):
     print('Total update steps:', total_update_steps)
 
     # Define optimizer (with learning rate schedule)
-    lr_schedule = tf.keras.optimizers.schedules.PolynomialDecay(initial_learning_rate=8e-4, decay_steps=total_update_steps, end_learning_rate=0.0, power=0.9)
+    lr_schedule = tf.keras.optimizers.schedules.PolynomialDecay(initial_learning_rate=8e-4,
+                                                                decay_steps=total_update_steps, end_learning_rate=0.0,
+                                                                power=0.9)
     opt = tfa.optimizers.AdamW(learning_rate=lr_schedule, weight_decay=1e-4)
 
     # Manage checkpoints (keep track of network weights, optimizer state, and last epoch id)
@@ -51,12 +51,12 @@ def main(args):
     if ckpt_manager.latest_checkpoint:
         ckpt.restore(ckpt_manager.latest_checkpoint).expect_partial()
         initial_epoch = int(ckpt.last_saved_epoch + 1)
-        print('Latest checkpoint restored ({}). Training from epoch {}.'.format(ckpt_manager.latest_checkpoint, initial_epoch + 1))
+        print('Latest checkpoint restored ({}). Training from epoch {}.'.format(ckpt_manager.latest_checkpoint,
+                                                                                initial_epoch + 1))
     else:
         initial_epoch = 0
         print('No checkpoint restored. Training from scratch.')
 
-    
     @tf.function
     def train_step(x, y_true_labels):
         print('Tracing training step...')
@@ -72,7 +72,6 @@ def main(args):
 
         return loss
 
-
     # Training
     start = time.time()
     for epoch in range(initial_epoch, num_epochs):
@@ -80,14 +79,19 @@ def main(args):
         for batch in range(num_batches_per_epoch):
             x, y_true_labels = dataset.get_training_batch(batch, batch_size, (img_h, img_w))
             loss = train_step(x, y_true_labels)
-            
+
             # Print information about the current batch
             if (batch + 1) % args.print_every == 0:
                 current_step = int(opt.iterations)
                 current_lr = opt.learning_rate(current_step)
                 elapsed_time = time.time() - start
-                print('[Epoch {}/{}. Batch {}/{}]'.format(epoch + 1, num_epochs, batch + 1, num_batches_per_epoch), end=' ')
-                print('Training batch loss: {:.2f}. Elapsed time: {:.1f} s. Schedule: (step {}, lr {:.1e}).'.format(loss, elapsed_time, current_step, current_lr))
+                print('[Epoch {}/{}. Batch {}/{}]'.format(epoch + 1, num_epochs, batch + 1, num_batches_per_epoch),
+                      end=' ')
+                print(
+                    'Training batch loss: {:.2f}. Elapsed time: {:.1f} s. Schedule: (step {}, lr {:.1e}).'.format(loss,
+                                                                                                                  elapsed_time,
+                                                                                                                  current_step,
+                                                                                                                  current_lr))
 
         # Save training checkpoint after each epoch
         ckpt.last_saved_epoch.assign_add(1)
