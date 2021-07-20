@@ -1,8 +1,6 @@
 name: Upload to PIP
 
 on:
-  push:
-    branches: [ qa ]
   # Triggers the workflow when a release is created
   release:
     types: [ created ]
