@@ -30,7 +30,7 @@ def parse_requirements(filename):
 README_MD = open(join(dirname(abspath(__file__)), "README.md")).read()
 
 setup(name='soundscape-generation',
-      version=get_version('wandb_callbacks/__init__.py'),
+      version=get_version('soundscape-generation/__init__.py'),
       author='ABIZ Lab',
       author_email='abiz@hslu.ch',
       description='Generate soundscapes based on images.',
