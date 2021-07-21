@@ -69,12 +69,3 @@ services:
                 reservations:
                     devices:
                         - capabilities: [ gpu ]
-
-    tensorboard:
-        image: tensorflow/tensorflow:2.4.0
-        ports:
-            - 6006:6006
-        volumes:
-            - ${PWD}:/tf/
-        command: bash -c "pip install -U tensorboard-plugin-profile; tensorboard --bind_all --logdir tf/experiments/"
-

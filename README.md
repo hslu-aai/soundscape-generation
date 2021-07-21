@@ -1,5 +1,7 @@
 # Soundscape Generation
 
+Generate soundscapes from images.
+
 ## Table of Contents
 
 1. [Installation](#installation)
@@ -56,11 +58,20 @@ predictions are saved with the same name and a `_pred.jpg` suffix). Ensure that 
 docker-compose up predict_object_detection
 ```
 
+### Evaluate the Segmentation Network
+To evaluate the segmentation network run the command below.
+
+```bash
+docker-compose up evaluation
+```
+
 ### Generate soundscapes
 
-Run the file soundGeneration.py to generate soundscapes of every image in the `test_images/` directory (note: results
-are saved in the `soundscapes/` directory). Ensure that you specify the image type of the image in the image path
-variable of `predict.py`.
+To generate soundscapes of every image in the `--test_images` directory run the following command. The generated audios will be saved in `data/soundscapes`. Ensure that you specify the correct image's file type in `--test_images_type`.
+
+```bash
+docker-compose up sound_generation
+```
 
 ## Results
 
