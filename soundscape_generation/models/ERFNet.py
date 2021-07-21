@@ -114,6 +114,7 @@ class Decoder(tf.keras.Model):
 class ERFNet(tf.keras.Model):
     def __init__(self, num_classes):
         super(ERFNet, self).__init__()
+        self.model_name = 'ERFNet'
         self.encoder = Encoder()
         self.decoder = Decoder(num_classes)
 

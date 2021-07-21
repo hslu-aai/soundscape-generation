@@ -1,4 +1,46 @@
+import os
 import tensorflow as tf
+from datetime import datetime
+
+
+def create_folder(path):
+    """
+    Creates a folder at a given path.
+    :param path: the folder path to create.
+    :return: the path of the newly created path.
+    """
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    return path
+
+
+def create_folder_for_experiment(model_name, dataset_name):
+    # create experiment folder for current dataset
+    experiment_path = create_folder(os.path.join(os.getcwd(), 'experiments'))
+    experiment_path = create_folder(os.path.join(experiment_path, dataset_name))
+
+    # create current experiment folder
+    current_time = datetime.now().strftime("%Y%m%d-%H%M%S")
+    experiment_folder_name = "{0}-{1}".format(model_name, current_time)
+    experiment_path = create_folder(os.path.join(experiment_path, experiment_folder_name))
+    print('Created experiment path at: {}'.format(experiment_path))
+
+    return experiment_path
+
+
+def set_gpu_experimental_growth():
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            # Currently, memory growth needs to be the same across GPUs
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        except RuntimeError as e:
+            # Memory growth must be set before GPUs have been initialized
+            print(e)
 
 
 def normalize_image(img):  # map pixel intensities to float32 in [-1, 1]

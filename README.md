@@ -1,5 +1,7 @@
 # Soundscape Generation
 
+Generate soundscapes from images.
+
 ## Table of Contents
 
 1. [Installation](#installation)
@@ -17,7 +19,7 @@ Follow the instructions give in the following link:
 
 * [Scaper installation](https://scaper.readthedocs.io/en/latest/installation.html)
 
-### Download Dependencies
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -30,7 +32,7 @@ on [www.cityscapes-dataset.com](https://www.cityscapes-dataset.com/). After the 
 script. During the download, it will ask you to provide your email and password for authentification.
 
 ```bash
-./download_data.sh
+./scripts/download_data.sh
 ```
 
 ## Usage
@@ -41,31 +43,35 @@ finetuned on the Cityscapes dataset.
 
 ### Train Object Segmentation Network
 
-To train the network, run the follwing command.
+To train the network, run the follwing command. The hyperparameters epoch and batch size can be configured in the `docker-compose.yml` file. To load a pre-trained model specify its path in the `MODEL_TO_LOAD` variable, if the variable is `None` the model is trained from scratch.
 
 ```bash
-python train.py --num_epochs 70 --batch_size 8 --evaluate_every 1 --save_weights_every 1
+docker-compose up train_object_detection
 ```
-
-By default, training resumes from the latest saved checkpoint. If the `checkpoints/` directory is missing, the training
-starts from scratch.
 
 ### Test the Segmentation Network
 
-Run the following command to predict the semantic segmentation of every image in the `test_images/` directory (note:
-results are saved in the `test_segmentations/` directory)
+Run the following command to predict the semantic segmentation of every image in the `--test_images` directory (note:
+predictions are saved with the same name and a `_pred.jpg` suffix). Ensure that you specify the correct image's file type in `--test_images_type`.
 
 ```bash
-python predict.py
+docker-compose up predict_object_detection
 ```
 
-Ensure that you specify the image's file type in the image path variable in `predict.py`.
+### Evaluate the Segmentation Network
+To evaluate the segmentation network run the command below.
+
+```bash
+docker-compose up evaluation
+```
 
 ### Generate soundscapes
 
-Run the file soundGeneration.py to generate soundscapes of every image in the `test_images/` directory (note: results
-are saved in the `soundscapes/` directory). Ensure that you specify the image type of the image in the image path
-variable of `predict.py`.
+To generate soundscapes of every image in the `--test_images` directory run the following command. The generated audios will be saved in `data/soundscapes`. Ensure that you specify the correct image's file type in `--test_images_type`.
+
+```bash
+docker-compose up sound_generation
+```
 
 ## Results
 

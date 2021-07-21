@@ -3,11 +3,12 @@ import os
 import random
 import tensorflow as tf
 
-from utils import read_image, read_segmentation
+from soundscape_generation.utils.utils import read_image, read_segmentation
 
 
 class CityscapesDataset:
     def __init__(self):
+        self.name = 'Cityscapes'
         self.image_paths = sorted(glob.glob(os.path.join(os.getcwd(), 'data', 'images', 'train', '*', '*.png')))
         self.segmentation_paths = sorted(
             glob.glob(os.path.join(os.getcwd(), 'data', 'segmentations', 'train', '*', '*labelIds.png')))
