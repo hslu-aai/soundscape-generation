@@ -19,7 +19,7 @@ Follow the instructions give in the following link:
 
 * [Scaper installation](https://scaper.readthedocs.io/en/latest/installation.html)
 
-### Download Dependencies
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
