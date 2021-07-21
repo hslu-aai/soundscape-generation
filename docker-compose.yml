@@ -24,7 +24,41 @@ services:
         volumes:
             - ${PWD}:/tf/
         working_dir: /tf
-        command: bash -c "./scripts/predict.sh"
+        command: bash -c "./scripts/predict_object_detection.sh"
+        devices:
+            - /dev/nvidia0
+        environment:
+            NVIDIA_VISIBLE_DEVICES: 0
+            WEIGHTS_PATH: None
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - capabilities: [ gpu ]
+
+    sound_generation:
+        build: .
+        volumes:
+            - ${PWD}:/tf/
+        working_dir: /tf
+        command: bash -c "./scripts/sound_generation.sh"
+        devices:
+            - /dev/nvidia0
+        environment:
+            NVIDIA_VISIBLE_DEVICES: 0
+            WEIGHTS_PATH: None
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - capabilities: [ gpu ]
+
+    evaluation:
+        build: .
+        volumes:
+            - ${PWD}:/tf/
+        working_dir: /tf
+        command: bash -c "./scripts/evaluation.sh"
         devices:
             - /dev/nvidia0
         environment:

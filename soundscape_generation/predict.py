@@ -21,10 +21,6 @@ def main(args):
     img_h_orig, img_w_orig = 1024, 2048  # original size of images in Cityscapes dataset
     img_h, img_w = args.img_height, args.img_width
 
-    if not os.path.exists('extended_prototype/test_segmentations'):
-        os.makedirs('extended_prototype/test_segmentations')
-        print('test_segmentations directory created.')
-
     dataset = CityscapesDataset()
 
     print('Creating network and loading weights...')
@@ -39,13 +35,15 @@ def main(args):
     if eval(args.weights) is None:
         args.weights = DEFAULT_MODEL
     weights_path = os.path.join(os.getcwd(), args.weights)
-    image_paths = sorted(glob.glob(os.path.join(os.getcwd(), args.test_images, '*.{}'.format(args.test_images_type))))  # Specify Image file type
+    image_paths = sorted(glob.glob(os.path.join(os.getcwd(), args.test_images, '*[!_pred].{}'.format(args.test_images_type))))  # Specify Image file type
 
     network.load_weights(weights_path)
     print('Weights from {} loaded correctly.'.format(weights_path))
+    print('*'*20 + 'START PREDICTION' + '*'*20)
 
     inference_times = []
     for image_path in image_paths:
+        print('-'*20 + image_path + '-'*20)
         t0 = time.time()
 
         image = read_image(image_path, (img_h, img_w))
@@ -64,7 +62,6 @@ def main(args):
         segmentation = Image.fromarray(y_pred_colors.numpy())
         segmentation.save(save_path)
 
-        print('Segmentation of image\n {}\nsaved in\n {}.'.format(image_path, save_path))
         inference_times.append(t1 - t0)
 
         # Print detected_objects
@@ -73,12 +70,12 @@ def main(args):
         foreground_sounds_dict[tail] = foreground_sounds
         background_sounds_dict[tail] = background_sounds
     mean_inference_time = sum(inference_times) / len(inference_times)
-    print('\nAverage inference time: {:.3f} s'.format(mean_inference_time))
+    print('-'*20 + 'PREDICTION STATS' + '-'*20)
+    print('Average inference time: {:.3f} s'.format(mean_inference_time))
     return foreground_sounds_dict, background_sounds_dict
 
 
 def get_sounds(image_path, save_path, y_pred_labels, dataset):
-    print('Prediction of image\n{}\n{}'.format(image_path, save_path))
     unique, counts = np.unique(y_pred_labels.numpy(), return_counts=True)
     detected_objects_dict = dict(zip(unique, counts))
     topitems = heapq.nlargest(1, detected_objects_dict.items(), key=itemgetter(1))

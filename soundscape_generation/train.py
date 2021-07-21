@@ -8,12 +8,14 @@ from soundscape_generation.models.ERFNet import ERFNet
 from soundscape_generation.dataset.cityscapes import CityscapesDataset
 from soundscape_generation.eval.evaluation import evaluate
 from soundscape_generation.loss.losses import weighted_cross_entropy_loss
-from soundscape_generation.utils.utils import create_folder_for_experiment
+from soundscape_generation.utils.utils import create_folder_for_experiment, set_gpu_experimental_growth
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def main(args):
+    set_gpu_experimental_growth()
+
     num_epochs = args.num_epochs
     batch_size = args.batch_size
     val_batch_size = args.val_batch_size

@@ -29,6 +29,20 @@ def create_folder_for_experiment(model_name, dataset_name):
     return experiment_path
 
 
+def set_gpu_experimental_growth():
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            # Currently, memory growth needs to be the same across GPUs
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        except RuntimeError as e:
+            # Memory growth must be set before GPUs have been initialized
+            print(e)
+
+
 def normalize_image(img):  # map pixel intensities to float32 in [-1, 1]
     """
     Normalize a given image to float32 with range [-1, 1].
