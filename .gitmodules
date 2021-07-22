@@ -1,0 +1,3 @@
+[submodule "data/soundbank"]
+	path = data/soundbank
+	url = https://github.com/hslu-abiz/soundscape-generation-dataset
