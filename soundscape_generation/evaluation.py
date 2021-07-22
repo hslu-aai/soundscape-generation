@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 from soundscape_generation.models.ERFNet import ERFNet
 from soundscape_generation.dataset.cityscapes import CityscapesDataset
-from soundscape_generation.eval.evaluation import evaluate, get_total_recall, get_total_percision
+from soundscape_generation.eval.evaluation import compute_iou, get_total_recall, get_total_percision
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -55,7 +55,7 @@ def main(args):
     print('Weights from {} loaded correctly.'.format(weights_path))
 
     print('*'*20 + 'IOU' + '*'*20)
-    iou_per_class, iou_mean = evaluate(dataset, network, val_batch_size, (img_h, img_w))
+    iou_per_class, iou_mean = compute_iou(dataset, network, val_batch_size, (img_h, img_w))
     print("iou_per_class: {}\niou_mean: {}".format(iou_per_class, iou_mean))
 
     print('*'*20 + 'PRECISION' + '*'*20)

@@ -4,48 +4,68 @@ import tensorflow as tf
 from soundscape_generation.utils.utils import read_image
 
 
-def compute_intersection_and_union_in_batch(y_true_labels, y_pred_labels, num_classes):
-    # y_true_labels: (val_batch_size, img_h, img_w)
-    # y_pred_labels: (val_batch_size, img_h, img_w)
+def compute_intersection_and_union(y_true_labels, y_pred_labels, num_classes):
+    """
+    Computes the Intersection and union score for the given batch.
+    :param y_true_labels: true labels of the batch (val_batch_size, img_h, img_w)
+    :param y_pred_labels: predicted labels of the batch (val_batch_size, img_h, img_w)
+    :param num_classes: number of in the dataset
+    :return: the intersection and union score for the batch.
+    """
 
-    batch_intersection, batch_union = [], []  # for each class, store the sum of intersections and unions in the batch
+    # for each class, store the sum of intersections and unions in the batch
+    batch_intersection, batch_union = [], []
 
-    for class_label in range(num_classes - 1):  # ignore class 'other'
+    # -1 ignores the class `other`
+    for class_label in range(num_classes - 1):
         true_equal_class = tf.cast(tf.equal(y_true_labels, class_label), tf.int32)
         pred_equal_class = tf.cast(tf.equal(y_pred_labels, class_label), tf.int32)
 
-        intersection = tf.reduce_sum(tf.multiply(true_equal_class, pred_equal_class))  # TP (true positives)
-        union = tf.reduce_sum(true_equal_class) + tf.reduce_sum(
-            pred_equal_class) - intersection  # TP + FP + FN = (TP + FP) + (TP + FN) - TP
+        # TP (true positives)
+        intersection = tf.reduce_sum(tf.multiply(true_equal_class, pred_equal_class))
+        # TP + FP + FN = (TP + FP) + (TP + FN) - TP
+        union = tf.reduce_sum(true_equal_class) + tf.reduce_sum(pred_equal_class) - intersection
 
         batch_intersection.append(intersection)
         batch_union.append(union)
 
-    return tf.cast(tf.stack(batch_intersection, axis=0), tf.int64), tf.cast(tf.stack(batch_union, axis=0),
-                                                                            tf.int64)  # (19,)
+    return tf.cast(tf.stack(batch_intersection, axis=0), tf.int64), \
+           tf.cast(tf.stack(batch_union, axis=0), tf.int64)  # (19,)
 
 
-def evaluate(dataset, network, val_batch_size, image_size):
-    # Compute IoU on validation set (IoU = Intersection / Union)
+def compute_iou(dataset, model, val_batch_size, image_size):
+    """
+    Computes the IoU (intersection over union) score on the validation set.
+    :param dataset: dataset from which to get the validation set.
+    :param model: the model to evaluate.
+    :param val_batch_size: size of the validation batch.
+    :param image_size: size of the images.
+    :return: the IoU score per class and the mean over all classes.
+    """
 
-    total_intersection = tf.zeros((19), tf.int64)
-    total_union = tf.zeros((19), tf.int64)
+    total_intersection = tf.zeros(19, tf.int64)
+    total_union = tf.zeros(19, tf.int64)
 
     print('Evaluating on validation set...')
     num_val_batches = dataset.num_val_images // val_batch_size
     for batch in range(num_val_batches):
-        x, y_true_labels = dataset.get_validation_batch(batch, val_batch_size, image_size)
+        # get the validation batch
+        X_val, y_val_true_labels = dataset.get_validation_batch(batch, val_batch_size, image_size)
 
-        y_pred_logits = network(x, is_training=False)
-        y_pred_labels = tf.math.argmax(y_pred_logits, axis=-1, output_type=tf.int32)
+        # compute the predictions of the validation set
+        y_val_pred_logits = model(X_val, is_training=False)
+        y_val_pred_labels = tf.math.argmax(y_val_pred_logits, axis=-1, output_type=tf.int32)
 
-        batch_intersection, batch_union = compute_intersection_and_union_in_batch(y_true_labels, y_pred_labels,
-                                                                                  dataset.num_classes)
+        # compute the intersection and union scores
+        batch_intersection, batch_union = compute_intersection_and_union(y_val_true_labels, y_val_pred_labels,
+                                                                         dataset.num_classes)
         total_intersection += batch_intersection
         total_union += batch_union
 
-    iou_per_class = tf.divide(total_intersection, total_union)  # IoU for each of the 19 classes
-    iou_mean = tf.reduce_mean(iou_per_class)  # Mean IoU over the 19 classes
+    # IoU for each of the 19 classes
+    iou_per_class = tf.divide(total_intersection, total_union)
+    # Mean IoU over the 19 classes
+    iou_mean = tf.reduce_mean(iou_per_class)
 
     return iou_per_class, iou_mean
 
@@ -74,7 +94,7 @@ def get_total_percision(dataset, network, val_batch_size, image_size, is_validat
     else:
         test_set_true_counter = 0
         for image_path in image_paths:
-            print('-'*20 + image_path + '-'*20)
+            print('-' * 20 + image_path + '-' * 20)
             image = read_image(image_path, image_size)
             x = tf.expand_dims(image, axis=0)
             y_pred_logits = network(x, is_training=False)  # (1, img_h, img_w, num_classes)
@@ -87,7 +107,7 @@ def get_total_percision(dataset, network, val_batch_size, image_size, is_validat
             test_set_true_counter += 1
             print('Precistion: {}'.format(batchprecision))
         total_set_precision = tf.divide(total_tp, total_tp_and_fp)
-        print('-'*20 + 'TOTAL PRECISION' + '-'*20)
+        print('-' * 20 + 'TOTAL PRECISION' + '-' * 20)
         print('Total Precistion on own test set is {}'.format(total_set_precision))
         return total_set_precision
 
@@ -165,7 +185,7 @@ def get_total_recall(dataset, network, val_batch_size, image_size, is_validation
     else:
         test_set_true_counter = 0
         for image_path in image_paths:
-            print('-'*20 + image_path + '-'*20)
+            print('-' * 20 + image_path + '-' * 20)
             image = read_image(image_path, image_size)
             x = tf.expand_dims(image, axis=0)
             y_pred_logits = network(x, is_training=False)  # (1, img_h, img_w, num_classes)
@@ -178,7 +198,7 @@ def get_total_recall(dataset, network, val_batch_size, image_size, is_validation
             test_set_true_counter += 1
             print('Recall: {}'.format(batchrecall))
         total_set_recall = tf.divide(total_tp, total_tp_and_fn)
-        print('-'*20 + 'TOTAL RECALL' + '-'*20)
+        print('-' * 20 + 'TOTAL RECALL' + '-' * 20)
         print('Total Recall on own test set is {}'.format(total_set_recall))
         return total_set_recall
 

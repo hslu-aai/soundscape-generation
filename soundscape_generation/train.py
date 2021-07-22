@@ -6,7 +6,7 @@ import tensorflow_addons as tfa
 import time
 from soundscape_generation.models.ERFNet import ERFNet
 from soundscape_generation.dataset.cityscapes import CityscapesDataset
-from soundscape_generation.eval.evaluation import evaluate
+from soundscape_generation.eval.evaluation import compute_iou
 from soundscape_generation.loss.losses import weighted_cross_entropy_loss
 from soundscape_generation.utils.utils import create_folder_for_experiment, set_gpu_experimental_growth
 
@@ -92,7 +92,7 @@ def main(args):
 
         # compute the IoU score on validation set
         if (epoch + 1) % args.evaluate_every == 0:
-            iou_per_class, iou_mean = evaluate(dataset, network, val_batch_size, (img_h, img_w))
+            iou_per_class, iou_mean = compute_iou(dataset, network, val_batch_size, (img_h, img_w))
             print('Mean IoU: {:.4f}'.format(iou_mean))
             with np.printoptions(formatter={'float': '{:.4f}'.format}):
                 print('IoU per class: {}'.format(iou_per_class.numpy()))

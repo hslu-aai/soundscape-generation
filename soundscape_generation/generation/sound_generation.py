@@ -42,10 +42,15 @@ class SoundGenerator:
     TIME_STRETCH_MIN = 0.5
     TIME_STRETCH_MAX = 1.0
 
-    SEED = 123  # Generate a random seed for this Scaper object
+    SEED = 123
 
     def __init__(self, foreground_sounds, background_sounds, image_names):
-        # Initialisation of Scaper and Object-Detection Container
+        """
+        Initialisation of Scaper and Object-Detection Container.
+        :param foreground_sounds: list of foreground sounds.
+        :param background_sounds: list of background sounds.
+        :param image_names: list of images from which to generate soundscapes.
+        """
         self.sc = scaper.Scaper(self.DURATION, self.FG_FOLDER, self.BG_FOLDER, random_state=self.SEED)
         self.sc.protected_labels = []
         self.sc.ref_db = self.REF_DB
@@ -56,13 +61,18 @@ class SoundGenerator:
         # create the output folder
         create_folder(os.path.join(os.getcwd(), self.OUTFOLDER))
 
-    # Generate 2 soundscapes using a truncated normal distribution of start times
     def generate_sound(self, n_soundscapes):
-        print('*'*20 + 'START GENERATION' + '*'*20)
+        """
+        Generate $n$ number of soundscapes from the given `image_names` (i.e. segmented images)
+        using truncated normal distribution of start times.
+        :param n_soundscapes: number of soundscapes that should be generated from each image.
+        :return: None.
+        """
+        print('*' * 20 + 'START GENERATION' + '*' * 20)
         for i in range(len(self.image_names)):
             image_name = self.image_names[i]
             image_name = image_name.split('.')[0].strip()
-            print('-'*20 + 'GENERATION: {}'.format(image_name) + '-'*20)
+            print('-' * 20 + 'GENERATION: {}'.format(image_name) + '-' * 20)
 
             fg_sound = self.detected_foreground_sounds[i]
             bg_sound = self.detected_background_sounds[i]
@@ -89,24 +99,25 @@ class SoundGenerator:
                                       source_file=('choose', []),
                                       source_time=(self.SOURCE_TIME_DIST, self.SOURCE_TIME),
                                       event_time=(self.EVENT_TIME_DIST, self.EVENT_TIME_MEAN, self.EVENT_TIME_STD),
-                                      event_duration=(self.EVENT_DURATION_DIST, self.EVENT_DURATION_MIN, self.EVENT_DURATION_MAX),
+                                      event_duration=(
+                                      self.EVENT_DURATION_DIST, self.EVENT_DURATION_MIN, self.EVENT_DURATION_MAX),
                                       snr=(self.SNR_DIST, self.SNR_MIN, self.SNR_MAX),
-                                      pitch_shift=(None),
-                                      time_stretch=(None))
+                                      pitch_shift=None,
+                                      time_stretch=None)
 
                 # define the output files
-                audiofile = os.path.join(self.OUTFOLDER, "{}_soundscape_number_{:d}.wav".format(image_name, n + 1))
-                txtfile = os.path.join(self.OUTFOLDER, "{}_soundscape_number_{:d}.txt".format(image_name, n + 1))
+                audio_file = os.path.join(self.OUTFOLDER, "{}_soundscape_number_{:d}.wav".format(image_name, n + 1))
+                txt_file = os.path.join(self.OUTFOLDER, "{}_soundscape_number_{:d}.txt".format(image_name, n + 1))
 
                 # generate the soundscape
-                self.sc.generate(audiofile,
+                self.sc.generate(audio_file,
                                  allow_repeated_label=True,
                                  allow_repeated_source=True,
                                  reverb=0.1,
                                  disable_sox_warnings=True,
                                  no_audio=False,
-                                 txt_path=txtfile,
+                                 txt_path=txt_file,
                                  peak_normalization=True,
                                  disable_instantiation_warnings=True)
 
-                print('Generated soundscape: {}'.format(audiofile))
+                print('Generated soundscape: {}'.format(audio_file))
