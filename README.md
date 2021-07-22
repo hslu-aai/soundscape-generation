@@ -10,6 +10,16 @@ Generate soundscapes from images.
 
 ## Installation
 
+### Docker Installation
+
+To run the project, make sure that Docker is correctly installed on the machine. If it is not already installed, follow
+these instructions: [Docker installation](https://docs.docker.com/engine/install/)
+
+### Docker-Compose Installation
+
+The project uses Docker and Docker-Compose to provide easy to use prototypes. If Docker-Compose is not already installed
+on the machine, follow these instructions: [Docker-Compose installation](https://docs.docker.com/compose/install/)
+
 ### Scaper Installation
 
 The sound generation module was developed using Scaper. Given a collection of isolated sound events, Scaper acts as a
@@ -43,7 +53,9 @@ finetuned on the Cityscapes dataset.
 
 ### Train Object Segmentation Network
 
-To train the network, run the follwing command. The hyperparameters epoch and batch size can be configured in the `docker-compose.yml` file. To load a pre-trained model specify its path in the `MODEL_TO_LOAD` variable, if the variable is `None` the model is trained from scratch.
+To train the network, run the following command. The hyperparameters epoch and batch size can be configured in
+the `docker-compose.yml` file. To load a pre-trained model, specify its path in the `MODEL_TO_LOAD` variable. If the
+variable is `None`, the model is trained from scratch.
 
 ```bash
 docker-compose up train_object_detection
@@ -52,14 +64,16 @@ docker-compose up train_object_detection
 ### Test the Segmentation Network
 
 Run the following command to predict the semantic segmentation of every image in the `--test_images` directory (note:
-predictions are saved with the same name and a `_pred.jpg` suffix). Ensure that you specify the correct image's file type in `--test_images_type`.
+predictions are saved with the same name and a `_pred.jpg` suffix). Ensure that you specify the correct image's file
+type in `--test_images_type`.
 
 ```bash
 docker-compose up predict_object_detection
 ```
 
 ### Evaluate the Segmentation Network
-To evaluate the segmentation network run the command below.
+
+To evaluate the segmentation network, run the command below.
 
 ```bash
 docker-compose up evaluation
@@ -67,7 +81,8 @@ docker-compose up evaluation
 
 ### Generate soundscapes
 
-To generate soundscapes of every image in the `--test_images` directory run the following command. The generated audios will be saved in `data/soundscapes`. Ensure that you specify the correct image's file type in `--test_images_type`.
+To generate soundscapes of every image in the `--test_images` directory, run the following command. The generated audios
+will be saved in `data/soundscapes`. Ensure that you specify the correct image's file type in `--test_images_type`.
 
 ```bash
 docker-compose up sound_generation
@@ -82,8 +97,9 @@ docker-compose up sound_generation
 ![](assets/test3.png)
 
 The above predictions are produced by a network trained for 67 epochs that achieves a mean class IoU score of 0.7084 on
-the validation set. The inference time on a Tesla P100 GPU is around 0.2 seconds per image. The model was trained for 70 epochs on a single Tesla P100. After the training, the checkpoint
-that yielded to highest validation IoU score was selected. The progression of the IoU metric is shown below.
+the validation set. The inference time on a Tesla P100 GPU is around 0.2 seconds per image. The model was trained for 70
+epochs on a single Tesla P100. After the training, the checkpoint that yielded to highest validation IoU score was
+selected. The progression of the IoU metric is shown below.
 
 ![](assets/iou_plot.png)
 
