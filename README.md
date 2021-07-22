@@ -29,6 +29,16 @@ Follow the instructions give in the following link:
 
 * [Scaper installation](https://scaper.readthedocs.io/en/latest/installation.html)
 
+### Clone Project
+
+The project can be cloned by running the following commands. The latter command is used to retrieve all the contents of
+the submodules in the project (e.g. the soundbank).
+
+```bash
+git clone https://github.com/hslu-abiz/soundscape-generation.git
+git submodule update --init --recursive
+```
+
 ### Install Dependencies
 
 ```bash
