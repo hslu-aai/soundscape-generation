@@ -23,9 +23,10 @@ if __name__ == "__main__":
     background_objects_list = list(background_objects.values())
 
     # instantiate the sound generator
-    soundscape_generator = SoundGenerator(foreground_sounds=foreground_objects_list,
-                                          background_sounds=background_objects_list,
-                                          image_names=image_names)
+    soundscape_generator = SoundGenerator()
     # generate for each image 3 different soundscapes
     number_soundscapes_per_image = range(0, 3)
-    soundscape_generator.generate_sound(number_soundscapes_per_image)
+    soundscape_generator.generate_sound(number_soundscapes_per_image,
+                                        image_names=image_names,
+                                        detected_foreground_sounds=foreground_objects_list,
+                                        detected_background_sounds=background_objects_list)

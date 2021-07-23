@@ -44,38 +44,35 @@ class SoundGenerator:
 
     SEED = 123
 
-    def __init__(self, foreground_sounds, background_sounds, image_names):
+    def __init__(self):
         """
         Initialisation of Scaper and Object-Detection Container.
-        :param foreground_sounds: list of foreground sounds.
-        :param background_sounds: list of background sounds.
-        :param image_names: list of images from which to generate soundscapes.
         """
         self.sc = scaper.Scaper(self.DURATION, self.FG_FOLDER, self.BG_FOLDER, random_state=self.SEED)
         self.sc.protected_labels = []
         self.sc.ref_db = self.REF_DB
-        self.detected_foreground_sounds = foreground_sounds
-        self.detected_background_sounds = background_sounds
-        self.image_names = image_names
 
         # create the output folder
         create_folder(os.path.join(os.getcwd(), self.OUTFOLDER))
 
-    def generate_sound(self, n_soundscapes):
+    def generate_sound(self, n_soundscapes, image_names, detected_foreground_sounds, detected_background_sounds):
         """
-        Generate $n$ number of soundscapes from the given `image_names` (i.e. segmented images)
+        Generate $N$ soundscapes from the given detected foreground and background sounds.
         using truncated normal distribution of start times.
         :param n_soundscapes: number of soundscapes that should be generated from each image.
+        :param image_names: list of images from which to generate soundscapes (only used for naming the audios).
+        :param detected_foreground_sounds: list of detected foreground sounds.
+        :param detected_background_sounds: list of detected background sounds.
         :return: None.
         """
         print('*' * 20 + 'START GENERATION' + '*' * 20)
-        for i in range(len(self.image_names)):
-            image_name = self.image_names[i]
+        for i in range(len(image_names)):
+            image_name = image_names[i]
             image_name = image_name.split('.')[0].strip()
             print('-' * 20 + 'GENERATION: {}'.format(image_name) + '-' * 20)
 
-            fg_sound = self.detected_foreground_sounds[i]
-            bg_sound = self.detected_background_sounds[i]
+            fg_sound = detected_foreground_sounds[i]
+            bg_sound = detected_background_sounds[i]
             all_foreground_sounds_list = os.listdir(self.FG_FOLDER)
             all_background_sounds_list = os.listdir(self.BG_FOLDER)
             final_fg_sound = [x for x in fg_sound if x in all_foreground_sounds_list]

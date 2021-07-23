@@ -48,7 +48,6 @@ class NonBottleNeck1D(tf.keras.layers.Layer):
 
         out = tf.keras.layers.Add()([out, inp])
         out = tf.nn.relu(out)
-
         return out
 
 

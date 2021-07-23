@@ -11,7 +11,6 @@ def create_folder(path):
     """
     if not os.path.exists(path):
         os.mkdir(path)
-
     return path
 
 
@@ -25,7 +24,6 @@ def create_folder_for_experiment(model_name, dataset_name):
     experiment_folder_name = "{0}-{1}".format(model_name, current_time)
     experiment_path = create_folder(os.path.join(experiment_path, experiment_folder_name))
     print('Created experiment path at: {}'.format(experiment_path))
-
     return experiment_path
 
 

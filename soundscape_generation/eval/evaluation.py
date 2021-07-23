@@ -72,17 +72,17 @@ def compute_iou(dataset, model, val_batch_size, image_size):
 
 def get_total_percision(dataset, network, val_batch_size, image_size, is_validation_set, own_test_set_true,
                         image_paths):
-    total_tp = tf.zeros((1), tf.int64)
-    total_tp_and_fp = tf.zeros((1), tf.int64)
+    total_tp = tf.zeros(1, tf.int64)
+    total_tp_and_fp = tf.zeros(1, tf.int64)
     num_val_batches = dataset.num_val_images // val_batch_size
-    if (is_validation_set):
+    if is_validation_set:
         print()
         for batch in range(num_val_batches):
             x, y_true_labels = dataset.get_validation_batch(batch, val_batch_size, image_size)
             y_pred_logits = network(x, is_training=False)
             y_pred_labels = tf.math.argmax(y_pred_logits, axis=-1, output_type=tf.int32)
-            tp_batch, tp_and_fp_batch = get_precisition_in_batch(y_true_labels, y_pred_labels, dataset.num_classes,
-                                                                 is_validation_set)
+            tp_batch, tp_and_fp_batch = get_precision_in_batch(y_true_labels, y_pred_labels, dataset.num_classes,
+                                                               is_validation_set)
             total_tp += tp_batch
             total_tp_and_fp += tp_and_fp_batch
             batchprecision = tf.divide(tp_batch, tp_and_fp_batch)
@@ -99,8 +99,8 @@ def get_total_percision(dataset, network, val_batch_size, image_size, is_validat
             x = tf.expand_dims(image, axis=0)
             y_pred_logits = network(x, is_training=False)  # (1, img_h, img_w, num_classes)
             y_pred_labels = tf.math.argmax(y_pred_logits[0], axis=-1, output_type=tf.int32)
-            tp_batch, tp_and_fp_batch = get_precisition_in_batch(np.array(own_test_set_true[test_set_true_counter]),
-                                                                 y_pred_labels, dataset.num_classes, is_validation_set)
+            tp_batch, tp_and_fp_batch = get_precision_in_batch(np.array(own_test_set_true[test_set_true_counter]),
+                                                               y_pred_labels, dataset.num_classes, is_validation_set)
             total_tp += tp_batch
             total_tp_and_fp += tp_and_fp_batch
             batchprecision = tf.divide(tp_batch, tp_and_fp_batch)
@@ -112,61 +112,11 @@ def get_total_percision(dataset, network, val_batch_size, image_size, is_validat
         return total_set_precision
 
 
-def get_precisition_in_batch(y_true, y_pred, num_classes, is_validation_set):
-    tp_batch, tp_and_fp_batch = [], []
-    tp = 0
-    fp = 0
-    if (is_validation_set):
-        y_true_labels_list = []
-        y_pred_labels_list = []
-        for class_label in range(num_classes - 1):
-            true_equal_class = tf.cast(tf.equal(y_true, class_label), tf.int32)
-            pred_equal_class = tf.cast(tf.equal(y_pred, class_label), tf.int32)
-            y_true_labels_list.append(tf.reduce_sum(true_equal_class))
-            y_pred_labels_list.append(tf.reduce_sum(pred_equal_class))
-
-        y_true_array = np.array(y_true_labels_list)
-        y_pred_array = np.array(y_pred_labels_list)
-
-        # Convert to bool arrays
-        y_true_bool_array = np.where(y_true_array > 0, 1, 0)
-        y_pred_bool_array = np.where(y_pred_array > 0, 1, 0)
-
-        for i in range(len(y_true_bool_array)):
-            if (y_true_bool_array[i] == 1 and y_pred_bool_array[i] == 1):
-                tp += 1
-            if (y_pred_bool_array[i] > y_true_bool_array[i]):
-                fp += 1
-        print("y_true: {}".format(y_true_bool_array))
-        print("y_pred: {}".format(y_pred_bool_array))
-        print("True Positives: {}, False Positives: {}".format(tp, fp))
-    else:
-        y_pred_labels_list = []
-
-        for class_label in range(num_classes - 1):
-            pred_equal_class = tf.cast(tf.equal(y_pred, class_label), tf.int32)
-            y_pred_labels_list.append(tf.reduce_sum(pred_equal_class))
-
-        y_pred_array = np.array(y_pred_labels_list)
-        y_pred_bool_array = np.where(y_pred_array > 0, 1, 0)
-        for i in range(len(y_pred_bool_array)):
-            if (y_true[i] == 1 and y_pred_bool_array[i] == 1):
-                tp += 1
-            if (y_pred_bool_array[i] > y_true[i]):
-                fp += 1
-        print("y_true: {}".format(y_true))
-        print("y_pred: {}".format(y_pred_bool_array))
-        print("True Positives: {}, False Positives: {}".format(tp, fp))
-    tp_batch.append(tp)
-    tp_and_fp_batch.append(tp + fp)
-    return tp_batch, tp_and_fp_batch
-
-
 def get_total_recall(dataset, network, val_batch_size, image_size, is_validation_set, own_test_set_true, image_paths):
-    total_tp = tf.zeros((1), tf.int64)
-    total_tp_and_fn = tf.zeros((1), tf.int64)
+    total_tp = tf.zeros(1, tf.int64)
+    total_tp_and_fn = tf.zeros(1, tf.int64)
     num_val_batches = dataset.num_val_images // val_batch_size
-    if (is_validation_set):
+    if is_validation_set:
         print()
         for batch in range(num_val_batches):
             x, y_true_labels = dataset.get_validation_batch(batch, val_batch_size, image_size)
@@ -204,10 +154,9 @@ def get_total_recall(dataset, network, val_batch_size, image_size, is_validation
 
 
 def get_recall_in_batch(y_true, y_pred, num_classes, is_validation_set):
-    tp_batch, tp_and_fn_batch = [], []
-    tp = 0
-    fn = 0
-    if (is_validation_set):
+    tp_batch, tp_and_fn_batch, tp_and_fp_batch = [], [], []
+    tp, fn, fp = 0, 0, 0
+    if is_validation_set:
         y_true_labels_list = []
         y_pred_labels_list = []
         for class_label in range(num_classes - 1):
@@ -224,13 +173,15 @@ def get_recall_in_batch(y_true, y_pred, num_classes, is_validation_set):
         y_pred_bool_array = np.where(y_pred_array > 0, 1, 0)
 
         for i in range(len(y_true_bool_array)):
-            if (y_true_bool_array[i] == 1 and y_pred_bool_array[i] == 1):
+            if y_true_bool_array[i] == 1 and y_pred_bool_array[i] == 1:
                 tp += 1
-            if (y_pred_bool_array[i] < y_true_bool_array[i]):
+            if y_pred_bool_array[i] < y_true_bool_array[i]:
                 fn += 1
+            if y_pred_bool_array[i] > y_true_bool_array[i]:
+                fp += 1
         print("y_true: {}".format(y_true_bool_array))
         print("y_pred: {}".format(y_pred_bool_array))
-        print("True Positives: {}, False Negatives: {}".format(tp, fn))
+        print("True Positives: {}, False Negatives: {}, False Positives: {}".format(tp, fn, fp))
     else:
         y_pred_labels_list = []
         for class_label in range(num_classes - 1):
@@ -241,13 +192,16 @@ def get_recall_in_batch(y_true, y_pred, num_classes, is_validation_set):
         y_pred_bool_array = np.where(y_pred_array > 0, 1, 0)
 
         for i in range(len(y_pred_labels_list)):
-            if (y_true[i] == 1 and y_pred_bool_array[i] == 1):
+            if y_true[i] == 1 and y_pred_bool_array[i] == 1:
                 tp += 1
-            if (y_pred_bool_array[i] < y_true[i]):
+            if y_pred_bool_array[i] < y_true[i]:
                 fn += 1
+            if y_pred_bool_array[i] > y_true[i]:
+                fp += 1
         print("y_true: {}".format(y_true))
         print("y_pred: {}".format(y_pred_bool_array))
-        print("True Positives: {}, False Negatives: {}".format(tp, fn))
+        print("True Positives: {}, False Negatives: {}, False Positives: {}".format(tp, fn, fp))
     tp_batch.append(tp)
     tp_and_fn_batch.append(tp + fn)
-    return tp_batch, tp_and_fn_batch
+    tp_and_fp_batch.append(tp + fp)
+    return tp_batch, tp_and_fn_batch, tp_and_fp_batch
