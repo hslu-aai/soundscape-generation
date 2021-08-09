@@ -21,7 +21,7 @@ def main(args):
     img_h_orig, img_w_orig = 1024, 2048  # original size of images in Cityscapes dataset
     img_h, img_w = args.img_height, args.img_width
 
-    dataset = CityscapesDataset()
+    dataset = CityscapesDataset(image_size=(img_h, img_w))
 
     print('Creating network and loading weights...')
     network = ERFNet(dataset.num_classes)

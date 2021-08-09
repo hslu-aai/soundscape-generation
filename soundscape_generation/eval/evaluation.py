@@ -70,8 +70,17 @@ def compute_iou(dataset, model, val_batch_size, image_size):
     return iou_per_class, iou_mean
 
 
-def get_total_percision(dataset, network, val_batch_size, image_size, is_validation_set, own_test_set_true,
-                        image_paths):
+def get_total_precision(dataset, network, val_batch_size, image_size, is_validation_set, own_test_set_true, image_paths):
+    """
+    Computes the total precision of the network on a given dataset.
+    :param dataset: the dataset to evaluate on.
+    :param network: the network to evaluate.
+    :param val_batch_size: the size of the validation batch.
+    :param image_size: the size of the image.
+    :param is_validation_set: if the network should be evaluated on the validation set or not.
+    :param own_test_set_true: if the network should be evaluated on a custom test set.
+    :param image_paths: path of the images for the evaluation (only needed if the network is evaluated on a custom set).
+    """
     total_tp = tf.zeros(1, tf.int64)
     total_tp_and_fp = tf.zeros(1, tf.int64)
     num_val_batches = dataset.num_val_images // val_batch_size
@@ -81,8 +90,8 @@ def get_total_percision(dataset, network, val_batch_size, image_size, is_validat
             x, y_true_labels = dataset.get_validation_batch(batch, val_batch_size, image_size)
             y_pred_logits = network(x, is_training=False)
             y_pred_labels = tf.math.argmax(y_pred_logits, axis=-1, output_type=tf.int32)
-            tp_batch, tp_and_fp_batch = get_precision_in_batch(y_true_labels, y_pred_labels, dataset.num_classes,
-                                                               is_validation_set)
+            tp_batch, _, tp_and_fp_batch = get_confusion_matrix_batch(y_true_labels, y_pred_labels, dataset.num_classes,
+                                                                      is_validation_set)
             total_tp += tp_batch
             total_tp_and_fp += tp_and_fp_batch
             batchprecision = tf.divide(tp_batch, tp_and_fp_batch)
@@ -99,8 +108,9 @@ def get_total_percision(dataset, network, val_batch_size, image_size, is_validat
             x = tf.expand_dims(image, axis=0)
             y_pred_logits = network(x, is_training=False)  # (1, img_h, img_w, num_classes)
             y_pred_labels = tf.math.argmax(y_pred_logits[0], axis=-1, output_type=tf.int32)
-            tp_batch, tp_and_fp_batch = get_precision_in_batch(np.array(own_test_set_true[test_set_true_counter]),
-                                                               y_pred_labels, dataset.num_classes, is_validation_set)
+            tp_batch, _, tp_and_fp_batch = get_confusion_matrix_batch(
+                np.array(own_test_set_true[test_set_true_counter]),
+                y_pred_labels, dataset.num_classes, is_validation_set)
             total_tp += tp_batch
             total_tp_and_fp += tp_and_fp_batch
             batchprecision = tf.divide(tp_batch, tp_and_fp_batch)
@@ -113,6 +123,16 @@ def get_total_percision(dataset, network, val_batch_size, image_size, is_validat
 
 
 def get_total_recall(dataset, network, val_batch_size, image_size, is_validation_set, own_test_set_true, image_paths):
+    """
+   Computes the total recall of the network on a given dataset.
+   :param dataset: the dataset to evaluate on.
+   :param network: the network to evaluate.
+   :param val_batch_size: the size of the validation batch.
+   :param image_size: the size of the image.
+   :param is_validation_set: if the network should be evaluated on the validation set or not.
+   :param own_test_set_true: if the network should be evaluated on a custom test set.
+   :param image_paths: path of the images for the evaluation (only needed if the network is evaluated on a custom set).
+   """
     total_tp = tf.zeros(1, tf.int64)
     total_tp_and_fn = tf.zeros(1, tf.int64)
     num_val_batches = dataset.num_val_images // val_batch_size
@@ -122,8 +142,8 @@ def get_total_recall(dataset, network, val_batch_size, image_size, is_validation
             x, y_true_labels = dataset.get_validation_batch(batch, val_batch_size, image_size)
             y_pred_logits = network(x, is_training=False)
             y_pred_labels = tf.math.argmax(y_pred_logits, axis=-1, output_type=tf.int32)
-            tp_batch, tp_and_fn_batch = get_recall_in_batch(y_true_labels, y_pred_labels, dataset.num_classes,
-                                                            is_validation_set)
+            tp_batch, tp_and_fn_batch, _ = get_confusion_matrix_batch(y_true_labels, y_pred_labels, dataset.num_classes,
+                                                                      is_validation_set)
             total_tp += tp_batch
             total_tp_and_fn += tp_and_fn_batch
             batchrecall = tf.divide(tp_batch, tp_and_fn_batch)
@@ -140,8 +160,9 @@ def get_total_recall(dataset, network, val_batch_size, image_size, is_validation
             x = tf.expand_dims(image, axis=0)
             y_pred_logits = network(x, is_training=False)  # (1, img_h, img_w, num_classes)
             y_pred_labels = tf.math.argmax(y_pred_logits[0], axis=-1, output_type=tf.int32)
-            tp_batch, tp_and_fn_batch = get_recall_in_batch(np.array(own_test_set_true[test_set_true_counter]),
-                                                            y_pred_labels, dataset.num_classes, is_validation_set)
+            tp_batch, tp_and_fn_batch, _ = get_confusion_matrix_batch(
+                np.array(own_test_set_true[test_set_true_counter]),
+                y_pred_labels, dataset.num_classes, is_validation_set)
             total_tp += tp_batch
             total_tp_and_fn += tp_and_fn_batch
             batchrecall = tf.divide(tp_batch, tp_and_fn_batch)
@@ -153,7 +174,15 @@ def get_total_recall(dataset, network, val_batch_size, image_size, is_validation
         return total_set_recall
 
 
-def get_recall_in_batch(y_true, y_pred, num_classes, is_validation_set):
+def get_confusion_matrix_batch(y_true, y_pred, num_classes, is_validation_set):
+    """
+    Computes the confusion matrix for a given batch, i.e. TP, TP+FN, TP+FP.
+    Used to compute Precision and Recall.
+    :param y_true: the true labels.
+    :param y_pred: the predicted labels.
+    :param num_classes: number of classes in the dataset.
+    :param is_validation_set: if the batch is a validation batch or not.
+    """
     tp_batch, tp_and_fn_batch, tp_and_fp_batch = [], [], []
     tp, fn, fp = 0, 0, 0
     if is_validation_set:

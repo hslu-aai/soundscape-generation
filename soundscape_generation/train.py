@@ -22,7 +22,7 @@ def main(args):
     img_h, img_w = args.img_height, args.img_width
 
     # create dataset and model
-    dataset = CityscapesDataset()
+    dataset = CityscapesDataset(image_size=(img_h, img_w))
     network = ERFNet(dataset.num_classes)
 
     if eval(args.model_to_load) is None:
@@ -66,7 +66,7 @@ def main(args):
     for epoch in range(initial_epoch, num_epochs):
         dataset.shuffle_training_paths()
         for batch in range(num_batches_per_epoch):
-            x, y_true_labels = dataset.get_training_batch(batch, batch_size, (img_h, img_w))
+            x, y_true_labels = dataset.get_training_batch(batch, batch_size)
             loss = train_step(network, dataset, opt, x, y_true_labels)
 
             # print information about the current batch
