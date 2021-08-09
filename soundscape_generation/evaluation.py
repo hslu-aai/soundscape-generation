@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 from soundscape_generation.models.ERFNet import ERFNet
 from soundscape_generation.dataset.cityscapes import CityscapesDataset
-from soundscape_generation.eval.evaluation import evaluate, get_total_recall, get_total_percision
+from soundscape_generation.eval.evaluation import compute_iou, get_total_recall, get_total_precision
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -37,7 +37,7 @@ def main(args):
         [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1],
     ]
 
-    dataset = CityscapesDataset()
+    dataset = CityscapesDataset(image_size=(img_h, img_w))
 
     print('Creating network and loading weights...')
     network = ERFNet(dataset.num_classes)
@@ -55,11 +55,11 @@ def main(args):
     print('Weights from {} loaded correctly.'.format(weights_path))
 
     print('*'*20 + 'IOU' + '*'*20)
-    iou_per_class, iou_mean = evaluate(dataset, network, val_batch_size, (img_h, img_w))
+    iou_per_class, iou_mean = compute_iou(dataset, network, val_batch_size, (img_h, img_w))
     print("iou_per_class: {}\niou_mean: {}".format(iou_per_class, iou_mean))
 
     print('*'*20 + 'PRECISION' + '*'*20)
-    get_total_percision(dataset, network, val_batch_size, (img_h, img_w), is_validation_set, own_test_set_true, image_paths)
+    get_total_precision(dataset, network, val_batch_size, (img_h, img_w), is_validation_set, own_test_set_true, image_paths)
 
     print('*'*20 + 'RECALL' + '*'*20)
     get_total_recall(dataset, network, val_batch_size, (img_h, img_w), is_validation_set, own_test_set_true, image_paths)

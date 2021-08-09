@@ -21,7 +21,7 @@ def main(args):
     img_h_orig, img_w_orig = 1024, 2048  # original size of images in Cityscapes dataset
     img_h, img_w = args.img_height, args.img_width
 
-    dataset = CityscapesDataset()
+    dataset = CityscapesDataset(image_size=(img_h, img_w))
 
     print('Creating network and loading weights...')
     network = ERFNet(dataset.num_classes)
@@ -35,7 +35,7 @@ def main(args):
     if eval(args.weights) is None:
         args.weights = DEFAULT_MODEL
     weights_path = os.path.join(os.getcwd(), args.weights)
-    image_paths = sorted(glob.glob(os.path.join(os.getcwd(), args.test_images, '*[!_pred].{}'.format(args.test_images_type))))  # Specify Image file type
+    image_paths = sorted(glob.glob(os.path.join(os.getcwd(), args.test_images, '*[!_pred].{}'.format(args.test_images_type))))
 
     network.load_weights(weights_path)
     print('Weights from {} loaded correctly.'.format(weights_path))
