@@ -65,19 +65,29 @@ class CityscapesDataset:
         # Weight for every class (used to compute the loss). Under-represented classes have a larger weight.
         self.class_weights = self.compute_class_weights()
 
-    def get_training_batch(self, batch_id, batch_size) -> Tuple[np.array, np.array]:
+    def __get_batch(self, batch_id, batch_size) -> Tuple[np.array, np.array]:
         """
         Returns a training batch of the dataset.
         :param batch_id: index of the batch to return.
         :param batch_size: size of the batch to return.
-        :return: tuple of the validation batch [images, labels]
+        :return: tuple of the batch [images, labels].
         """
         start_id = batch_id * batch_size
         end_id = start_id + batch_size
 
         batch_images = [read_image(self.image_paths[i], self.image_size) for i in range(start_id, end_id)]
-        batch_segmentations = [read_segmentation(self.segmentation_paths[i], self.image_size, self.id2label) for i in
-                               range(start_id, end_id)]
+        batch_segmentations = [read_segmentation(self.segmentation_paths[i], self.image_size, self.id2label) for i
+                               in range(start_id, end_id)]
+        return batch_images, batch_segmentations
+
+    def get_training_batch(self, batch_id, batch_size) -> Tuple[np.array, np.array]:
+        """
+        Returns a training batch of the dataset.
+        :param batch_id: index of the batch to return.
+        :param batch_size: size of the batch to return.
+        :return: tuple of the training batch [images, labels].
+        """
+        batch_images, batch_segmentations = self.__get_batch(batch_id, batch_size)
 
         # Data augmentation
         for i in range(batch_size):
@@ -91,19 +101,14 @@ class CityscapesDataset:
         y_true_labels = tf.stack(batch_segmentations, axis=0)  # (batch_size, img_h, img_w)
         return x, y_true_labels
 
-    def get_validation_batch(self, batch_id, val_batch_size, image_size) -> Tuple[np.array, np.array]:
+    def get_validation_batch(self, batch_id, val_batch_size) -> Tuple[np.array, np.array]:
         """
         Returns a validation batch of the dataset.
         :param batch_id: index of the batch to return.
         :param val_batch_size: size of the batch to return.
-        :return: tuple of the validation batch [images, labels]
+        :return: tuple of the validation batch [images, labels].
         """
-        start_id = batch_id * val_batch_size
-        end_id = start_id + val_batch_size
-
-        batch_images = [read_image(self.image_paths[i], self.image_size) for i in range(start_id, end_id)]  # list of images
-        batch_segmentations = [read_segmentation(self.segmentation_paths[i], self.image_size, self.id2label) for i in
-                               range(start_id, end_id)]  # list of list of segmentations
+        batch_images, batch_segmentations = self.__get_batch(batch_id, val_batch_size)
 
         x = tf.stack(batch_images, axis=0)  # (batch_size, img_h, img_w, 3)
         y_true_labels = tf.stack(batch_segmentations, axis=0)  # (batch_size, img_h, img_w)
