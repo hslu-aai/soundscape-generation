@@ -5,11 +5,11 @@ echo $PWD
 
 # data folder
 mkdir -p ./data
-python -m cityscapesscripts.download.downloader -l
-python -m cityscapesscripts.download.downloader
+python3 -m cityscapesscripts.download.downloader -l
+python3 -m cityscapesscripts.download.downloader
 
 # segmentations
-python -m cityscapesscripts.download.downloader -d data/ gtFine_trainvaltest.zip
+python3 -m cityscapesscripts.download.downloader -d data/ gtFine_trainvaltest.zip
 wait
 unzip data/gtFine_trainvaltest.zip -d data/
 wait
@@ -18,7 +18,7 @@ wait
 mv ./data/gtFine ./data/segmentations
 
 # images
-python -m cityscapesscripts.download.downloader -d data/ leftImg8bit_trainvaltest.zip
+python3 -m cityscapesscripts.download.downloader -d data/ leftImg8bit_trainvaltest.zip
 wait
 unzip data/leftImg8bit_trainvaltest.zip -d data/
 wait
